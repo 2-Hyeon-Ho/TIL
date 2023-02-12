@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-public class 피보나치수열 {
+public class 반복피보나치수열 {
 
     private static int n;
     private static long[] caching;
@@ -13,17 +13,16 @@ public class 피보나치수열 {
         StringTokenizer stringTokenizer = new StringTokenizer(bufferedReader.readLine());
 
         n = Integer.parseInt(stringTokenizer.nextToken());
-        caching = new long[n*2];
+        caching = new long[n+1];
+
+        caching[1] = 1;
+        caching[2] = 1;
     }
 
     private static long fibonacci(int x) {
-        if(x == 1 || x == 2) {
-            return 1;
+        for(int i = 3; i <= n; i++) {
+            caching[i] = caching[i-1] + caching[i-2];
         }
-        if(caching[x] != 0) {
-            return caching[x];
-        }
-        caching[x] = fibonacci(x - 1) + fibonacci(x - 2);
         return caching[x];
     }
 
