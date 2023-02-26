@@ -3,14 +3,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
-public class 간단한다익스트라알고리즘 {
+public class 개선된다익스트라알고리즘 {
 
     private static int n, m;    //노드, 간선의 갯수
     private static int start;   //시작 노드
-    private static ArrayList<ArrayList<Node>> graph = new ArrayList<ArrayList<Node>>();
-    private static boolean[] visited;
+    private static ArrayList<ArrayList<Node2>> graph = new ArrayList<ArrayList<Node2>>();
     private static int[] distance;
     private static StringBuilder stringBuilder = new StringBuilder();
     private static int INFINITY = (int) 1e9;
@@ -21,7 +21,6 @@ public class 간단한다익스트라알고리즘 {
 
         n = Integer.parseInt(stringTokenizer.nextToken());
         m = Integer.parseInt(stringTokenizer.nextToken());
-        visited = new boolean[n+1];
         distance = new int[n+1];
 
         Arrays.fill(distance, INFINITY);
@@ -31,7 +30,7 @@ public class 간단한다익스트라알고리즘 {
 
         //노드개수 +1 크기로 그래프 초기화
         for(int i = 0; i <= n; i++) {
-            graph.add(new ArrayList<Node>());
+            graph.add(new ArrayList<Node2>());
         }
 
         for(int i = 0; i < m; i++) {
@@ -40,29 +39,30 @@ public class 간단한다익스트라알고리즘 {
             int b = Integer.parseInt(stringTokenizer.nextToken());
             int c = Integer.parseInt(stringTokenizer.nextToken());
             //a번 노드에서 b번 노드 까지의 거리가 c이다.
-            graph.get(a).add(new Node(b, c));
+            graph.get(a).add(new Node2(b, c));
         }
     }
 
     private static void solution() {
+        PriorityQueue<Node2> priorityQueue = new PriorityQueue<>();
+        // 시작 노드로 가기 위한 최단 경로는 0으로 설정하여, 큐에 삽입
+        priorityQueue.add(new Node2(start, 0));
         distance[start] = 0;
-        visited[start] = true;
 
-        for(int i = 0; i < graph.get(start).size(); i++) {
-            distance[graph.get(start).get(i).getIndex()] = graph.get(start).get(i).getDistance();
-        }
-
-        //시작노드를 제외하고 반복한다.
-        for(int i = 1; i <= n; i++) {
-            //가장 가까운 노드로 이동하고 방문처리
-            int now = getSmallestNode();
-            visited[now] = true;
+        while(!priorityQueue.isEmpty()) {
+            // 가장 최단 거리가 짧은 노드에 대한 정보 꺼내기
+            Node2 node = priorityQueue.poll();
+            int now = node.getIndex();
+            int nowDistance = node.getDistance();
+            // 현재 노드가 이미 처리된 적이 있는 노드라면 무시
+            if(distance[now] < nowDistance) continue;
             //현재노드와 연결된 노드들을 확인
-            for(int j = 0; j < graph.get(now).size(); j++) {
-                int smallestDistance = distance[now] + graph.get(now).get(j).getDistance();
-                //기존에 저장된 거리보다 현재노드를 거쳐서 다른노드로 가는 거리가 더 짧을 경우 최단경로 저장
-                if(smallestDistance < distance[graph.get(now).get(j).getIndex()]) {
-                    distance[graph.get(now).get(j).getIndex()] = smallestDistance;
+            for(int i = 0; i < graph.get(now).size(); i++) {
+                int cost = distance[now] + graph.get(now).get(i).getDistance();
+                // 현재 노드를 거쳐서, 다른 노드로 이동하는 거리가 더 짧은 경우
+                if(cost < distance[graph.get(now).get(i).getIndex()]) {
+                    distance[graph.get(now).get(i).getIndex()] = cost;
+                    priorityQueue.offer(new Node2(graph.get(now).get(i).getIndex(), cost));
                 }
             }
         }
@@ -76,32 +76,20 @@ public class 간단한다익스트라알고리즘 {
         }
     }
 
-    private static int getSmallestNode() {
-        int minDistance = INFINITY;
-        int index = 0;  //가장 거리가 짧은 노드의 인덱스를 저장하기 위한 변수
-
-        for(int i = 1; i <= n; i++) {
-            if(distance[i] < minDistance && !visited[i]) {
-                minDistance = distance[i];
-                index = i;
-            }
-        }
-        return index;
-    }
-
     public static void main(String[] args) throws IOException {
         input();
         solution();
         System.out.println(stringBuilder);
     }
+
 }
 
-class Node {
+class Node2 implements Comparable<Node2> {
 
     private int index;
     private int distance;
 
-    public Node(int index, int distance) {
+    public Node2(int index, int distance) {
         this.index = index;
         this.distance = distance;
     }
@@ -112,5 +100,14 @@ class Node {
 
     public int getDistance() {
         return distance;
+    }
+
+    //거리(비용)가 짧은 것이 높은 우선순위를 가지도록 설정
+    @Override
+    public int compareTo(Node2 other) {
+        if(this.distance < other.distance) {
+            return -1;
+        }
+        return 1;
     }
 }
